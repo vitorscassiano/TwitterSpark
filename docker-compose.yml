@@ -1,6 +1,13 @@
 version: '3'
 services:
   notebook:
-    image: jupyter/datascience-notebook
+    image: jupyter/pyspark-notebook
+    environment:
+      - NB_UID="1000"
+      - NB_GID="100"
     ports:
-      - 8888
+      - 8888:8888
+      - 4040:4040
+      - 4041:4041
+    volumes:
+      - ./:/home/jovyan/TwitterSpark

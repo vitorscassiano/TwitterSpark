@@ -13,8 +13,10 @@ class TwitterListener(StreamListener):
   def on_data(self, data):
     try:
       message = json.loads(data)
-      print(message["text"].encode("utf-8"))
-      self.client_socket.send(message["text"].encode("utf-8"))
+      msg = (message["text"] + '\n').encode("utf-8")
+      print(msg)
+      self.client_socket.send(msg)
+      # self.client_socket.send(message["text"].encode("utf-8"))
     except BaseException as e:
       print("Error:", e)
 

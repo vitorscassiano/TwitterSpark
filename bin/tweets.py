@@ -13,4 +13,4 @@ print("Listening on {} {}".format(HOST, PORT))
 s.listen(5)
 c,addr = s.accept()
 
-send_data(c, TwitterListener, "flamengo")
+send_data(c, TwitterListener, "one piece")

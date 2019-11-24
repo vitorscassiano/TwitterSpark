@@ -1,15 +1,35 @@
 import fixpath
 
 from pyspark import SparkConf, SparkContext
+from pyspark.streaming import StreamingContext 
+from pyspark.sql import SQLContext
+from pyspark.sql.functions import desc
 
-conf = SparkConf().setAppName("Twitter Application").setMaster("local"
+from src.models.Tweet import Tweet
 
+conf = SparkConf().setAppName("Twitter Application").setMaster("local")
 spark_context = SparkContext(conf=conf)
-text_file = spark_context.textFile("/tmp/breweries_us.csv")
+spark_streaming_context = StreamingContext(spark_context, 20)
+spark_streaming_context.checkpoint("checkpoint_TwitterApp")
 
-counts = text_file \
-    .flatMap(lambda line: line.split(" ")) \
-    .map(lambda word: (word, 1)) \
-    .reduceByKey(lambda a,b: a + b)
+spark_sql_context = SQLContext(spark_context)
 
-counts.saveAsTextFile("/tmp/processedFile.txt")
+socket_stream = spark_streaming_context.socketTextStream("127.0.0.1", 5555)
+
+lines = socket_stream.window(20)
+
+(
+  lines
+    .flatMap(lambda text: text.split(" "))
+    .filter(lambda word: word.lower().startswith("#"))
+    .map(lambda word: (word.lower(), 1))
+    .reduceByKey(lambda prev, curr: prev + curr)
+    .map(lambda rec: Tweet(rec[0], rec[1]))
+    .foreachRDD(lambda rdd: print(rdd))
+    # .foreachRDD(lambda rdd: rdd.toDF().sort( desc("count") ) )
+    
+    # .limit(10).registerTempTable("tweets")
+)
+
+
+spark_streaming_context.start()
