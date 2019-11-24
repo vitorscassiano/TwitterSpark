@@ -25,10 +25,10 @@ lines = socket_stream.window(20)
     .map(lambda word: (word.lower(), 1))
     .reduceByKey(lambda prev, curr: prev + curr)
     .map(lambda rec: Tweet(rec[0], rec[1]))
-    .foreachRDD(lambda rdd: print(rdd))
-    # .foreachRDD(lambda rdd: rdd.toDF().sort( desc("count") ) )
-    
-    # .limit(10).registerTempTable("tweets")
+    .foreachRDD(lambda rdd: rdd.toDF().sort( desc("count") )
+      .limit(10)
+      .registerTempTable("tweets")
+    )
 )
 
 
